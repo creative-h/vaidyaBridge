@@ -1,0 +1,482 @@
+
+<style>
+  :root { --teal:#0F6E56; --teal-l:#E1F5EE; --amber:#BA7517; --amber-l:#FAEEDA; --coral:#993C1D; --coral-l:#FAECE7; --blue:#185FA5; --blue-l:#E6F1FB; --purple:#534AB7; --purple-l:#EEEDFE; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, sans-serif); }
+  .wrap { padding: 1rem 0; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); font-size: 13px; cursor: pointer; background: var(--color-background-primary); color: var(--color-text-secondary); transition: all .18s; }
+  .tab.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; font-weight: 500; }
+  .section { display: none; }
+  .section.active { display: block; }
+  /* Cards */
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg, 12px); padding: 1rem 1.25rem; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md, 8px); padding: 1rem; }
+  .metric .label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .metric .val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  /* Badges */
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+  .b-teal { background: var(--teal-l); color: var(--teal); }
+  .b-amber { background: var(--amber-l); color: var(--amber); }
+  .b-coral { background: var(--coral-l); color: var(--coral); }
+  .b-blue { background: var(--blue-l); color: var(--blue); }
+  .b-purple { background: var(--purple-l); color: var(--purple); }
+  /* Patient list */
+  .pt-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: background .12s; border-radius: 6px; padding-left: 6px; }
+  .pt-row:last-child { border-bottom: none; }
+  .pt-row:hover { background: var(--color-background-secondary); }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .av-t { background: var(--teal-l); color: var(--teal); }
+  .av-b { background: var(--blue-l); color: var(--blue); }
+  .av-p { background: var(--purple-l); color: var(--purple); }
+  .av-a { background: var(--amber-l); color: var(--amber); }
+  .pt-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .pt-sub { font-size: 12px; color: var(--color-text-secondary); }
+  .pt-tags { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  /* Notification cards */
+  .notif { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); margin-bottom: 8px; background: var(--color-background-primary); }
+  .notif.urgent { border-left: 3px solid var(--coral); }
+  .notif.normal { border-left: 3px solid var(--teal); }
+  .notif-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  /* Query box */
+  .query-input { width: 100%; padding: 10px 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; background: var(--color-background-primary); color: var(--color-text-primary); font-family: inherit; }
+  .query-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,95,165,.12); }
+  .btn { padding: 8px 16px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 13px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .btn:hover { background: var(--color-background-secondary); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-primary:hover { background: #0C447C; }
+  /* SQL result */
+  .sql-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; font-family: var(--font-mono, monospace); font-size: 12px; color: var(--color-text-secondary); margin: 8px 0; white-space: pre-wrap; line-height: 1.7; }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .result-table th { text-align: left; font-weight: 500; font-size: 12px; color: var(--color-text-secondary); padding: 6px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .result-table td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+  .result-table tr:last-child td { border-bottom: none; }
+  .masked { color: var(--color-text-tertiary); letter-spacing: 2px; font-size: 11px; }
+  /* Report alert */
+  .report-alert { border-radius: var(--border-radius-md); padding: 12px 14px; border: 0.5px solid; margin-bottom: 10px; }
+  .alert-critical { background: var(--coral-l); border-color: var(--coral); }
+  .alert-stable { background: var(--teal-l); border-color: var(--teal); }
+  .report-alert .title { font-size: 13px; font-weight: 500; }
+  .report-alert .body { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+  /* Section headings */
+  h3 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; }
+  h4 { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .sep { height: 0.5px; background: var(--color-border-tertiary); margin: 16px 0; }
+  /* Login */
+  .login-wrap { max-width: 360px; margin: 0 auto; padding: 1.5rem 0; }
+  .login-toggle { display: flex; gap: 0; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; margin-bottom: 1.5rem; }
+  .lt { flex: 1; padding: 8px; text-align: center; font-size: 13px; cursor: pointer; background: var(--color-background-primary); color: var(--color-text-secondary); transition: all .15s; }
+  .lt.active { background: var(--color-background-info); color: var(--color-text-info); font-weight: 500; }
+  .form-field { margin-bottom: 12px; }
+  .form-field label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .form-field input { width: 100%; padding: 9px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; background: var(--color-background-primary); color: var(--color-text-primary); font-family: inherit; }
+  .form-field input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,95,165,.1); }
+  /* Tag chips */
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .tag-chip { padding: 4px 10px; border-radius: 12px; font-size: 12px; border: 0.5px solid var(--color-border-secondary); cursor: pointer; transition: all .12s; background: var(--color-background-primary); color: var(--color-text-secondary); }
+  .tag-chip.on { border-color: transparent; }
+  .tc-yoga.on { background: var(--teal-l); color: var(--teal); }
+  .tc-diet.on { background: var(--amber-l); color: var(--amber); }
+  .tc-counsel.on { background: var(--purple-l); color: var(--purple); }
+  .tc-med.on { background: var(--blue-l); color: var(--blue); }
+  .tc-followup.on { background: var(--coral-l); color: var(--coral); }
+  .tc-monitor.on { background: #EAF3DE; color: #3B6D11; }
+  /* Chain communication */
+  .comm-step { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+  .step-line { position: relative; }
+  .step-line::after { content:''; position: absolute; left: 14px; top: 30px; width: 1px; height: calc(100% + 8px); background: var(--color-border-tertiary); }
+  .comm-step:last-child .step-line::after { display: none; }
+  .step-body { font-size: 13px; color: var(--color-text-primary); line-height: 1.6; }
+  .step-time { font-size: 11px; color: var(--color-text-tertiary); }
+  /* NL query examples */
+  .nl-ex { padding: 6px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); font-size: 12px; cursor: pointer; color: var(--color-text-secondary); margin-bottom: 4px; transition: background .12s; }
+  .nl-ex:hover { background: var(--color-background-secondary); }
+</style>
+<h2 class="sr-only">Vaidya Bridge — healthcare platform feature prototype</h2>
+<div class="wrap">
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:1.25rem;">
+    <div style="width:32px;height:32px;border-radius:8px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="#0F6E56" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <div style="font-size:16px;font-weight:500;color:var(--color-text-primary)">Vaidya Bridge</div>
+      <div style="font-size:11px;color:var(--color-text-secondary)">Doctor–Patient care platform</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;">
+      <span class="badge b-teal">Dr. Meera Joshi</span>
+      <span class="badge b-blue">AIIMS Delhi</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="show('login')">Login</button>
+    <button class="tab" onclick="show('dashboard')">Doctor dashboard</button>
+    <button class="tab" onclick="show('patients')">Patient records</button>
+    <button class="tab" onclick="show('notifications')">Notifications</button>
+    <button class="tab" onclick="show('reports')">Report chain</button>
+    <button class="tab" onclick="show('query')">NL query</button>
+    <button class="tab" onclick="show('arch')">Architecture</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="s-login" class="section active">
+    <div class="login-wrap">
+      <div class="login-toggle">
+        <div class="lt active" id="lt-doc" onclick="loginRole('doc')">Doctor</div>
+        <div class="lt" id="lt-pat" onclick="loginRole('pat')">Patient</div>
+      </div>
+      <div class="card" id="login-card">
+        <div id="login-doc">
+          <div style="font-size:14px;font-weight:500;margin-bottom:14px;color:var(--color-text-primary)">Doctor login</div>
+          <div class="form-field"><label>Medical registration no.</label><input type="text" placeholder="MH-12345-2024" /></div>
+          <div class="form-field"><label>Password</label><input type="password" placeholder="••••••••" /></div>
+          <div class="form-field"><label>Hospital / clinic</label><input type="text" placeholder="e.g. AIIMS Delhi" /></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="show('dashboard')">Sign in as doctor ↗</button>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:10px;text-align:center">Row-level access — only your patients visible</div>
+        </div>
+        <div id="login-pat" style="display:none">
+          <div style="font-size:14px;font-weight:500;margin-bottom:14px;color:var(--color-text-primary)">Patient login</div>
+          <div class="form-field"><label>Mobile number</label><input type="text" placeholder="+91 98XXX XXXXX" /></div>
+          <div class="form-field"><label>OTP</label><input type="text" placeholder="6-digit OTP" /></div>
+          <div class="form-field"><label>Date of birth (verification)</label><input type="text" placeholder="DD/MM/YYYY" /></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:4px">Send OTP & sign in ↗</button>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:10px;text-align:center">Sensitive fields masked per data policy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="s-dashboard" class="section">
+    <div class="grid3" style="margin-bottom:14px">
+      <div class="metric"><div class="label">Total patients</div><div class="val">247</div></div>
+      <div class="metric"><div class="label">Follow-ups today</div><div class="val" style="color:var(--coral)">12</div></div>
+      <div class="metric"><div class="label">Pending reports</div><div class="val" style="color:var(--amber)">5</div></div>
+      <div class="metric"><div class="label">Critical alerts</div><div class="val" style="color:var(--coral)">2</div></div>
+      <div class="metric"><div class="label">Active sessions</div><div class="val" style="color:var(--teal)">18</div></div>
+      <div class="metric"><div class="label">Avg response time</div><div class="val">4.2h</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Today's follow-ups</h3>
+        <div class="pt-row" onclick="show('patients')">
+          <div class="avatar av-t">RK</div>
+          <div><div class="pt-name">Rajesh Kumar</div><div class="pt-sub">Follow-up · Hypertension · 10:00 AM</div></div>
+          <div class="pt-tags"><span class="badge b-coral">Urgent</span></div>
+        </div>
+        <div class="pt-row" onclick="show('patients')">
+          <div class="avatar av-b">PS</div>
+          <div><div class="pt-name">Priya Sharma</div><div class="pt-sub">Follow-up · Diabetes · 11:30 AM</div></div>
+          <div class="pt-tags"><span class="badge b-amber">Diet</span></div>
+        </div>
+        <div class="pt-row" onclick="show('patients')">
+          <div class="avatar av-p">AM</div>
+          <div><div class="pt-name">Anil Mehta</div><div class="pt-sub">Review · Post-surgery · 2:00 PM</div></div>
+          <div class="pt-tags"><span class="badge b-teal">Yoga</span></div>
+        </div>
+        <button class="btn" style="width:100%;margin-top:10px" onclick="show('notifications')">View all notifications ↗</button>
+      </div>
+      <div class="card">
+        <h3>Recent reports flagged</h3>
+        <div class="report-alert alert-critical">
+          <div class="title" style="color:var(--coral)">Suresh Nair — HbA1c critical</div>
+          <div class="body">HbA1c: 11.2% · Uploaded 2h ago · Auto-flagged</div>
+        </div>
+        <div class="report-alert alert-stable">
+          <div class="title" style="color:var(--teal)">Kavita Rao — BP stable</div>
+          <div class="body">130/85 mmHg · Uploaded 5h ago · Within range</div>
+        </div>
+        <button class="btn" style="width:100%;margin-top:6px" onclick="show('reports')">View report chain ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATIENTS -->
+  <div id="s-patients" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h3>Patient records</h3>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input class="query-input" style="flex:1;padding:7px 12px" placeholder="Search patient..." />
+          <button class="btn">Filter</button>
+        </div>
+        <div class="tag-chips">
+          <span class="tag-chip tc-yoga on">Yoga session</span>
+          <span class="tag-chip tc-diet on">Diet session</span>
+          <span class="tag-chip tc-counsel on">Counselling</span>
+          <span class="tag-chip tc-med on">Medication</span>
+          <span class="tag-chip tc-followup on">Follow-up</span>
+          <span class="tag-chip tc-monitor on">Monitoring</span>
+        </div>
+        <div class="sep"></div>
+        <div class="pt-row" onclick="selectPt('rk')">
+          <div class="avatar av-t">RK</div>
+          <div style="flex:1"><div class="pt-name">Rajesh Kumar, 52</div><div class="pt-sub">Hypertension · Last seen 3 days ago</div></div>
+          <div class="pt-tags"><span class="badge b-coral">Follow-up</span><span class="badge b-amber">Diet</span></div>
+        </div>
+        <div class="pt-row" onclick="selectPt('ps')">
+          <div class="avatar av-b">PS</div>
+          <div style="flex:1"><div class="pt-name">Priya Sharma, 38</div><div class="pt-sub">Type 2 Diabetes · Last seen 1 week ago</div></div>
+          <div class="pt-tags"><span class="badge b-amber">Diet</span><span class="badge b-teal">Yoga</span></div>
+        </div>
+        <div class="pt-row" onclick="selectPt('am')">
+          <div class="avatar av-p">AM</div>
+          <div style="flex:1"><div class="pt-name">Anil Mehta, 67</div><div class="pt-sub">Post-surgery · Last seen 5 days ago</div></div>
+          <div class="pt-tags"><span class="badge b-teal">Yoga</span><span class="badge b-purple">Counselling</span></div>
+        </div>
+        <div class="pt-row" onclick="selectPt('sn')">
+          <div class="avatar av-a">SN</div>
+          <div style="flex:1"><div class="pt-name">Suresh Nair, 45</div><div class="pt-sub">Diabetes · HbA1c critical · 2h ago</div></div>
+          <div class="pt-tags"><span class="badge b-coral">Critical</span></div>
+        </div>
+      </div>
+      <div class="card" id="pt-detail">
+        <h3>Select a patient</h3>
+        <div style="font-size:13px;color:var(--color-text-secondary)">Click a patient from the list to view their detail, tags, and add reminders.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div id="s-notifications" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h3>Automated reminders</h3>
+        <div class="notif urgent">
+          <div class="notif-icon" style="background:var(--coral-l)">🔔</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--coral)">Follow-up due: Rajesh Kumar</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Hypertension check · Scheduled 10:00 AM today · BP report pending</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn" style="font-size:12px;padding:4px 10px">Reschedule</button>
+              <button class="btn btn-primary" style="font-size:12px;padding:4px 10px">Confirm ↗</button>
+            </div>
+          </div>
+        </div>
+        <div class="notif urgent">
+          <div class="notif-icon" style="background:var(--coral-l)">⚠️</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--coral)">Critical report: Suresh Nair</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">HbA1c 11.2% detected · Requires immediate review</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn btn-primary" style="font-size:12px;padding:4px 10px" onclick="show('reports')">View report ↗</button>
+            </div>
+          </div>
+        </div>
+        <div class="notif normal">
+          <div class="notif-icon" style="background:var(--teal-l)">📋</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--teal)">Diet session reminder: Priya Sharma</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Weekly diet review · Tomorrow 3:00 PM</div>
+          </div>
+        </div>
+        <div class="notif normal">
+          <div class="notif-icon" style="background:var(--blue-l)">🧘</div>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--blue)">Yoga session: Anil Mehta</div>
+            <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">Post-surgery mobility — 7 sessions completed of 12</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Add patient reminder</h3>
+        <div class="form-field"><label>Patient</label>
+          <select style="width:100%;padding:9px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:14px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:inherit">
+            <option>Rajesh Kumar</option><option>Priya Sharma</option><option>Anil Mehta</option><option>Suresh Nair</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Session type</label>
+          <div class="tag-chips">
+            <span class="tag-chip tc-yoga" onclick="toggleTag(this)">Yoga</span>
+            <span class="tag-chip tc-diet on" onclick="toggleTag(this)">Diet</span>
+            <span class="tag-chip tc-counsel" onclick="toggleTag(this)">Counselling</span>
+            <span class="tag-chip tc-followup on" onclick="toggleTag(this)">Follow-up</span>
+            <span class="tag-chip tc-monitor" onclick="toggleTag(this)">Monitoring</span>
+          </div>
+        </div>
+        <div class="form-field"><label>Date & time</label><input type="text" placeholder="DD/MM/YYYY HH:MM" /></div>
+        <div class="form-field"><label>Notes for patient</label><textarea class="query-input" rows="2" placeholder="e.g. Bring latest BP readings..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:4px">Schedule & notify patient ↗</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT CHAIN -->
+  <div id="s-reports" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h3>Automated report chain</h3>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:14px">When a patient uploads a report, the system auto-analyses criticality and notifies the doctor instantly.</div>
+        
+        <div class="comm-step">
+          <div class="step-dot step-line" style="background:var(--blue-l);color:var(--blue)">1</div>
+          <div><div class="step-body">Patient <strong>Suresh Nair</strong> uploads HbA1c report via app</div><div class="step-time">Today 9:14 AM</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="step-dot step-line" style="background:var(--purple-l);color:var(--purple)">2</div>
+          <div><div class="step-body">AI reads report → detects HbA1c: 11.2% (critical threshold: &gt;9.0%)</div><div class="step-time">Today 9:14 AM · 12 seconds</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="step-dot step-line" style="background:var(--coral-l);color:var(--coral)">3</div>
+          <div><div class="step-body">Critical alert pushed to Dr. Meera Joshi — WhatsApp + app notification</div><div class="step-time">Today 9:14 AM · automated</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="step-dot step-line" style="background:var(--amber-l);color:var(--amber)">4</div>
+          <div><div class="step-body">Personalised message sent to patient: "Your report has been received. Dr. Joshi will review and contact you shortly."</div><div class="step-time">Today 9:15 AM · auto-generated</div></div>
+        </div>
+        <div class="comm-step">
+          <div class="step-dot" style="background:var(--teal-l);color:var(--teal)">5</div>
+          <div><div class="step-body">Doctor reviews, sends prescription update. Chain closed.</div><div class="step-time">Today 9:52 AM</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Personalised patient response</h3>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">AI auto-generates context-aware messages for patients based on their history and report results.</div>
+        <div class="report-alert alert-critical" style="margin-bottom:12px">
+          <div class="title" style="color:var(--coral)">Suresh Nair · HbA1c 11.2% — Critical</div>
+          <div class="body">Previous: 9.8% (3 months ago) · Tags: Diet session, Monitoring</div>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px">Auto-generated patient message:</div>
+        <div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;font-size:13px;color:var(--color-text-primary);line-height:1.7;border-left:3px solid var(--teal)">
+          नमस्ते Suresh जी,<br><br>
+          आपकी HbA1c रिपोर्ट प्राप्त हो गई है। Dr. Joshi इसे जल्द देखेंगी। कृपया घबराएं नहीं — आपकी देखभाल हो रही है। अगले 2 घंटों में आपसे संपर्क किया जाएगा। इस बीच अपनी Diet Session की guidelines follow करते रहें।
+        </div>
+        <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:6px">Language detected: Hindi · Tag context: Diet session applied</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" style="flex:1">Edit message</button>
+          <button class="btn btn-primary" style="flex:1">Send to patient ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NL QUERY -->
+  <div id="s-query" class="section">
+    <div class="grid2">
+      <div class="card">
+        <h3>Natural language query</h3>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">Ask questions about your patients in plain English or Hindi. LLM converts to SQL and queries BigQuery.</div>
+        <textarea class="query-input" id="nl-input" rows="3" placeholder="e.g. Show me all diabetic patients with HbA1c above 9% last month"></textarea>
+        <div style="margin:10px 0">
+          <h4>Try these examples</h4>
+          <div class="nl-ex" onclick="setQ('Show all patients who missed their follow-up in the last 2 weeks')">Show patients who missed follow-up in last 2 weeks</div>
+          <div class="nl-ex" onclick="setQ('Which patients are enrolled in yoga sessions and have BP above 140?')">Yoga session patients with BP above 140</div>
+          <div class="nl-ex" onclick="setQ('List patients with diabetes and HbA1c critical in last 3 months')">Diabetic patients with critical HbA1c</div>
+          <div class="nl-ex" onclick="setQ('Show diet session completion rate by age group')">Diet session completion by age group</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="runQuery()">Run query ↗</button>
+      </div>
+      <div class="card" id="query-result">
+        <h3>Query result</h3>
+        <div style="font-size:13px;color:var(--color-text-secondary)">Results will appear here after running a query.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div id="s-arch" class="section">
+    <div class="card" style="margin-bottom:12px">
+      <h3>System architecture overview</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px">
+        <div style="background:var(--blue-l);border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:var(--blue);margin-bottom:4px">Frontend</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">React web + Flutter mobile · Doctor & patient UIs · Role-based views</div>
+        </div>
+        <div style="background:var(--teal-l);border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:var(--teal);margin-bottom:4px">Backend API</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Node.js / FastAPI · Auth (OTP + MRN) · Row-level access control · Webhooks</div>
+        </div>
+        <div style="background:var(--purple-l);border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:var(--purple);margin-bottom:4px">AI layer</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">LLM (Claude / GPT-4) · NL→SQL · Report analysis · Auto-response generation</div>
+        </div>
+        <div style="background:var(--amber-l);border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:var(--amber);margin-bottom:4px">BigQuery DB</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Patient records · Reports · Sessions · Row-level security · Data masking</div>
+        </div>
+        <div style="background:var(--coral-l);border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:var(--coral);margin-bottom:4px">Notifications</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">Cloud Scheduler · FCM push · WhatsApp Business API · SMS fallback</div>
+        </div>
+        <div style="background:#EAF3DE;border-radius:var(--border-radius-md);padding:12px">
+          <div style="font-size:12px;font-weight:500;color:#3B6D11;margin-bottom:4px">Security</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6">HIPAA-aligned · PII masking · Role-based RLS · Audit logs · TLS everywhere</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Data masking example (BigQuery row-level security)</h3>
+      <table class="result-table">
+        <thead><tr><th>Patient ID</th><th>Name (masked for non-treating)</th><th>Diagnosis</th><th>HbA1c</th><th>Phone</th></tr></thead>
+        <tbody>
+          <tr><td>PT-001</td><td>Suresh Nair</td><td>Type 2 Diabetes</td><td style="color:var(--coral);font-weight:500">11.2%</td><td>+91 98XXX 1234</td></tr>
+          <tr><td>PT-002</td><td class="masked">●●●●● ●●●●</td><td>Hypertension</td><td>8.1%</td><td class="masked">●●●●●●●●●●</td></tr>
+          <tr><td>PT-003</td><td class="masked">●●●●● ●●●●●●</td><td>Post-surgery</td><td>5.8%</td><td class="masked">●●●●●●●●●●</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px">Rows 002 & 003 masked — not your assigned patients. Access logged to audit trail.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  const map = {login:0,dashboard:1,patients:2,notifications:3,reports:4,query:5,arch:6};
+  document.querySelectorAll('.tab')[map[id]].classList.add('active');
+}
+function loginRole(r) {
+  document.getElementById('lt-doc').classList.toggle('active', r==='doc');
+  document.getElementById('lt-pat').classList.toggle('active', r==='pat');
+  document.getElementById('login-doc').style.display = r==='doc'?'block':'none';
+  document.getElementById('login-pat').style.display = r==='pat'?'block':'none';
+}
+function toggleTag(el) { el.classList.toggle('on'); }
+function selectPt(id) {
+  const data = {
+    rk: { name:'Rajesh Kumar', age:52, cond:'Hypertension', tags:['Follow-up','Diet'], last:'3 days ago', notes:'BP trending high. On amlodipine 5mg. Next review in 1 week.' },
+    ps: { name:'Priya Sharma', age:38, cond:'Type 2 Diabetes', tags:['Diet','Yoga'], last:'1 week ago', notes:'HbA1c improved from 8.2% to 7.6%. Yoga sessions helping. Continue diet protocol.' },
+    am: { name:'Anil Mehta', age:67, cond:'Post-surgery recovery', tags:['Yoga','Counselling'], last:'5 days ago', notes:'Post-knee replacement. Mobility improving. Counselling for post-op anxiety.' },
+    sn: { name:'Suresh Nair', age:45, cond:'Type 2 Diabetes', tags:['Critical','Diet'], last:'Today', notes:'HbA1c 11.2% — critical. Immediate medication review needed. Contact today.' }
+  };
+  const p = data[id];
+  const badgeClasses = { 'Follow-up':'b-coral','Diet':'b-amber','Yoga':'b-teal','Counselling':'b-purple','Critical':'b-coral','Monitoring':'b-blue' };
+  const tagHtml = p.tags.map(t => `<span class="badge ${badgeClasses[t]||'b-blue'}">${t}</span>`).join(' ');
+  document.getElementById('pt-detail').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="avatar av-t" style="width:44px;height:44px;font-size:15px">${p.name.split(' ').map(n=>n[0]).join('')}</div>
+      <div><div style="font-size:15px;font-weight:500">${p.name}</div><div style="font-size:12px;color:var(--color-text-secondary)">${p.age} yrs · ${p.cond}</div></div>
+    </div>
+    <div class="sep"></div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">Tags</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${tagHtml}</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">Clinical notes</div>
+    <div style="font-size:13px;line-height:1.6;background:var(--color-background-secondary);padding:10px;border-radius:var(--border-radius-md)">${p.notes}</div>
+    <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px">Last interaction: ${p.last}</div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" style="flex:1">Add reminder</button>
+      <button class="btn btn-primary" style="flex:1" onclick="show('notifications')">Schedule session ↗</button>
+    </div>`;
+}
+function setQ(q) { document.getElementById('nl-input').value = q; }
+function runQuery() {
+  const q = document.getElementById('nl-input').value.trim();
+  if(!q) return;
+  const el = document.getElementById('query-result');
+  el.innerHTML = `<h3>Query result</h3><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px">Translating to SQL...</div><div class="sql-box">-- LLM-generated SQL (BigQuery)\nSELECT p.patient_id, p.name, p.age,\n  r.hba1c_value, r.report_date,\n  t.tag_name\nFROM patients p\nJOIN reports r ON p.patient_id = r.patient_id\nLEFT JOIN patient_tags t ON p.patient_id = t.patient_id\nWHERE p.condition = 'Type 2 Diabetes'\n  AND r.hba1c_value > 9.0\n  AND r.report_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 3 MONTH)\n  AND p.doctor_id = CURRENT_USER_DOCTOR_ID  -- row-level security\nORDER BY r.hba1c_value DESC;</div>
+  <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin:8px 0 4px">Results (2 patients)</div>
+  <table class="result-table">
+    <thead><tr><th>Name</th><th>Age</th><th>HbA1c</th><th>Date</th><th>Tag</th></tr></thead>
+    <tbody>
+      <tr><td>Suresh Nair</td><td>45</td><td style="color:var(--coral);font-weight:500">11.2%</td><td>08 Apr 2026</td><td><span class="badge b-amber">Diet</span></td></tr>
+      <tr><td>Priya Sharma</td><td>38</td><td style="color:var(--amber);font-weight:500">9.4%</td><td>01 Mar 2026</td><td><span class="badge b-teal">Yoga</span></td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px">Row-level security applied · Only your assigned patients returned</div>`;
+}
+</script>
