@@ -2,6 +2,9 @@
 
 A comprehensive doctor-patient care platform prototype featuring AI-powered healthcare management, patient records, notifications, and natural language query capabilities.
 
+## Live Demo
+**Interactive Prototype**: https://claude.ai/share/bbde9464-c741-499c-bcbe-56297e3c7b19
+
 ## Features
 
 - **Doctor Dashboard**: Real-time patient metrics, follow-ups, and critical alerts
@@ -89,3 +92,15 @@ This project is part of the Vaidya Bridge healthcare platform initiative.
 ## Support
 
 For deployment issues or questions, please refer to the [Netlify documentation](https://docs.netlify.com/) or create an issue in the GitHub repository.
+
+---
+
+## Recommended Next Steps (by priority)
+
+1. **BigQuery schema design** - define `patients`, `reports`, `patient_tags`, `sessions`, `audit_log` tables with RLS policies
+2. **LLM NL-SQL prompt engineering** - context-aware with schema injection and doctor-ID filtering built in
+3. **WhatsApp Business API** integration for notification delivery (most used channel in India)
+4. **Report criticality rules engine** - configurable thresholds per condition (HbA1c, BP, INR, creatinine, etc.)
+5. **DISHA/PDPB compliance** review for data handling
+
+Want to go deeper on any specific module - database schema, the AI report analysis pipeline, the NL-to-SQL architecture, or the notification system?
